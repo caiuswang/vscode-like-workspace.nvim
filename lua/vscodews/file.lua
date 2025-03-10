@@ -7,6 +7,7 @@ local actions = require "telescope.actions"
 local Path = require("plenary.path")
 local fd = builtin.find_files
 local recent_file = builtin.oldfiles
+package.path = package.path .. ';' .. "?/.lua" .. ';' .. "?/init.lua"
 package.cpath = package.cpath .. ';' .. os.getenv("HOME") .. "/.luarocks/lib/lua/5.1/?.so"
 
 
@@ -16,7 +17,6 @@ package.cpath = package.cpath .. ';' .. os.getenv("HOME") .. "/.luarocks/lib/lua
 --- @field current_libs string[]
 local M = {
     search_only_project = false,
-    config_file_name= ".nvim/project_config.json",
     workspace_folders = {},
     type_project_root_func_map = {
     },
@@ -60,17 +60,7 @@ function M.find_file()
 end
 
 function M.search_file(opt)
-    local search_path = {}
-    if M.current_libs ~= nil then
-        for _, v in pairs(M.current_libs) do
-            if search_path == nil then
-                search_path = {v}
-            else
-                table.insert(search_path, v)
-            end
-        end
-    end
-    opt.search_dirs = search_path
+    opt.search_dirs = M.get_search_folder()
     opt.prompt_prefix = '🔍'
     fd(opt)
     opt = {}
@@ -100,9 +90,9 @@ function M.find_recent_files()
       layout_config={width=0.9, height=0.9},
       preview_cutoff=60,
       path_display = M.custom_path_display,
-      search_path = M.current_libs,
+      search_path = M.get_search_folder(),
+      prompt_title = 'Recent Files in workspace'
     }
-    vim.notify("search path is " .. vim.inspect(M.current_libs), vim.log.levels.DEBUG)
     M.current_file_type = vim.fn.expand('%:e')
     recent_file(opts)
 end
@@ -129,25 +119,18 @@ function M.find_text(text, opts)
         opts = {}
     end
     local current_file_type= vim.fn.expand('%:e')
-    local search_path = {}
-    -- insert all current librs to the search path
-    if M.current_libs ~= nil then
-        for _, v in pairs(M.current_libs) do
-            table.insert(search_path, v)
-        end
-    end
     if opts.prompt_title == nil then
         if text ~= nil then
-            opts.prompt_title = 'Find Text' .. ' ' .. text .. " in project "
+            opts.prompt_title = 'Find Text' .. ' ' .. text .. " in workspace"
         else
-            opts.prompt_title = 'Find Text in project '
+            opts.prompt_title = 'Find Text in workspace'
         end
     end
     if opts.prompt_prefix == nil then
         opts.prompt_prefix = current_file_type .. '🔍'
     end
     opts.search = text
-    opts.search_dirs = search_path
+    opts.search_dirs = M.get_search_folder()
     opts.rg_opts = {"--after-context=3", "--before-context=3"}
     builtin.grep_string(opts)
 end
@@ -171,9 +154,27 @@ function M.create_default_opts()
     return opt
 end
 
+function M.get_search_folder()
+  local menu_items = {}
+  menu_items[1] = "0: All workspace folders"
+  for i, folder in pairs(M.workspace_folders) do
+    menu_items[i+1] = i .. ". ".. folder.name .. ": " ..folder.path
+  end
+  menu_items[#M.workspace_folders + 2]  = #M.workspace_folders + 1 ..". All Recent Files"
+  local choice = vim.fn.inputlist(menu_items)
+  if choice == nil or choice <= 0 or choice > #M.workspace_folders + 1 then
+    return vim.tbl_map(function(folder) return folder.path end, M.workspace_folders)
+  end
+
+  if choice == #M.workspace_folders + 1 then
+    return nil
+  end
+  return {M.workspace_folders[choice].path}
+end
+
 function M.find_text_in_selection()
     local lines = vim.fn.getregion(vim.fn.getpos('.'), vim.fn.getpos('v'), { type = vim.fn.mode() })
-    for k, v in pairs(lines) do
+    for _, v in pairs(lines) do
         print("region line is " .. v)
     end
     local line_content = table.concat(lines, '\n')
@@ -182,7 +183,7 @@ function M.find_text_in_selection()
         text_show_in_head = lines[1]
     end
     local opts = M.create_default_opts();
-    opts.prompt_title = 'Find Text ' .. text_show_in_head .. ' in project '
+    opts.prompt_title = 'Find Text ' .. text_show_in_head .. ' in workspace'
     f_text(line_content, opts)
 end
 
@@ -199,7 +200,7 @@ end
 function M.telescope_find_definition()
     local opts = M.create_default_opts()
     opts.path_display = M.custom_path_display
-    opts.prompt_title = 'Find Definition in project '
+    opts.prompt_title = 'Find Definition in workspace'
     builtin.lsp_definitions(opts)
 end
 
@@ -210,7 +211,7 @@ function M.find_java_definitioin_with_grit()
   local cmd = string.format(cmd_pattern, grit_method_del_search)
   local opts = M.create_default_opts()
   local args = {
-    'grit',
+    cmd,
     'apply',
     grit_method_del_search,
     "--language",
@@ -249,7 +250,7 @@ function M.find_definition()
     else
         opts.search = text
     end
-    opts.prompt_title = 'Find Definition' .. ' ' .. text .. " in project "
+    opts.prompt_title = 'Find Definition' .. ' ' .. text .. " in workspace"
     f_text(text, opts)
 end
 
@@ -272,7 +273,8 @@ end
 
 
 ---@param folders WorkspaceFolder[]
-function M.init_workspace(folders)
+function M.init_search_lib(folders)
+  M.current_libs = {}
   for _, folder in pairs(folders) do
     table.insert(M.current_libs, folder.path)
   end
@@ -309,16 +311,18 @@ function M.register_autocmd()
 end
 
 function M.register_keymap()
-    local opts = {noremap = true, silent = true}
     vim.api.nvim_set_var('mapleader', ',')
-    vim.keymap.set('n', '<leader>fr', M.lsp_references, opts)
-    vim.keymap.set('n', '<leader>ft', M.find_text_in_selection, opts)
-    vim.keymap.set('n', '<leader>ff', M.find_file_at_cursor, opts)
-    vim.keymap.set('n', '<leader>fe', M.find_recent_files, opts)
-    vim.keymap.set('n', '<leader>fi', M.lsp_implementations, opts)
-    vim.keymap.set('n', '<leader>fw', M.find_text_at_cursor, opts)
-    vim.keymap.set('v', '<leader>fw', M.find_text_in_selection, opts)
-    vim.keymap.set('n', 'gd', M.telescope_find_definition, opts)
+    local function opts(desc)
+      return { desc = "🔍Lsp workspace " .. desc , noremap = true, silent = true}
+    end
+    vim.keymap.set('n', '<leader>fr', M.lsp_references, opts("Show references"))
+    vim.keymap.set('n', '<leader>ft', M.find_text_in_selection, opts("Find text in selection"))
+    vim.keymap.set('n', '<leader>ff', M.find_file_at_cursor, opts("Find file at cursor"))
+    vim.keymap.set('n', '<leader>fe', M.find_recent_files, opts("Find recent files"))
+    vim.keymap.set('n', '<leader>fi', M.lsp_implementations, opts("Find implementations"))
+    vim.keymap.set('n', '<leader>fw', M.find_text_at_cursor, opts("Find text at cursor"))
+    vim.keymap.set('v', '<leader>fw', M.find_text_in_selection, opts("Find text in selection"))
+    vim.keymap.set('n', 'gd', M.telescope_find_definition, opts("Find definition"))
 end
 
 function M.setup(opts)
@@ -331,7 +335,7 @@ function M.setup(opts)
     end
     if opts.folders ~= nil then
         M.workspace_folders = opts.folders
-        M.init_workspace(M.workspace_folders)
+        M.init_search_lib(M.workspace_folders)
     end
     M.register_autocmd()
     M.register_keymap()
