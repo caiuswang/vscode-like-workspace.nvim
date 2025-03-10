@@ -16,7 +16,6 @@ package.cpath = package.cpath .. ';' .. os.getenv("HOME") .. "/.luarocks/lib/lua
 --- @field current_libs string[]
 local M = {
     search_only_project = false,
-    config_file_name= ".nvim/project_config.json",
     workspace_folders = {},
     type_project_root_func_map = {
     },
