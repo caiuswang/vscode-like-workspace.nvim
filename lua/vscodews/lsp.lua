@@ -1,67 +1,101 @@
 local M = {}
-local lspconfig = require("lspconfig")
-local util = require("vscodews.util")
-local extendedClientCapabilities = {
-	["classFileContentsSupport"] = true,
-	["advancedExtractRefactoringSupport"] = true,
-	["dynamicRegistration"] = true,
-}
---- @alias Config  vim.lsp.ClientConfig
-local set_map = {
-	["java.completion.filteredTypes"] = "antlr.* com.sun.* groovyjarjarantlr.* org.apache.xmlbeans.* org.hibernate.mapping.* groovyjarjarantlr.collections.* java.awt.*",
-	["java.autobuild.enabled"] = true,
-	["java.format.enabled"] = true,
-	["java.completion.chain.enabled"] = true,
-	["java.sharedIndexes.enabled"] = true,
-	["java.completion.maxResults"] = 10,
-	["java.trace.server"] = "verbose",
-}
-local function wrap_workspace_folder_path(path)
-	if path == nil then
-		return nil
-	end
-	return "file://" .. path
+
+local on_init = function(client, _)
+  if client.supports_method "textDocument/semanticTokens" then
+    client.server_capabilities.semanticTokensProvider = nil
+  end
 end
-local extra_folders = {}
+local on_attach = function(args)
+  if not args.data then
+    return
+  end
+  local client = vim.lsp.get_client_by_id(args.data.client_id)
+  vim.keymap.set('n', 'K', vim.lsp.buf.hover, { buffer = args.buf })
+  --
+  local keymap = vim.keymap.set
+  local function opts(desc)
+    return { buffer = args.buf, desc = "LSP " .. desc , noremap = true, silent = true}
+  end
+  keymap("n", "<leader>wl", function()
+    print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
+  end, opts "List workspace folders")
+  keymap('n', 'K', vim.lsp.buf.hover, opts "Show hover")
+  keymap('n', '<C-k>', vim.lsp.buf.signature_help, opts "Show signature help")
+  keymap('n', '<space>wa', vim.lsp.buf.add_workspace_folder, opts "Add workspace folder")
+  keymap('n', '<space>wr', vim.lsp.buf.remove_workspace_folder, opts "Remove workspace folder")
+  keymap('n', '<space>wl', vim.lsp.buf.list_workspace_folders, opts "List workspace folders")
+  keymap('n', '<space>D', vim.lsp.buf.type_definition, opts "Go to type definition")
+  keymap('n', '<space>rn', vim.lsp.buf.rename, opts "Rename")
+  keymap('n', '<space>ca', vim.lsp.buf.code_action, opts "Code action")
+  keymap('n', 'gr', vim.lsp.buf.references, opts "Show references")
+  keymap("n", "gh", "<cmd>Lspsaga finder<CR>")
+  keymap("n", "gs", "<cmd>Lspsaga signature_help<CR>")
+  keymap("n", "<C-k>", "<cmd>Lspsaga show_line_diagnostics<CR>")
+  keymap("n", "<Leader>ci", "<cmd>Lspsaga incoming_calls<CR>")
+  keymap("n", "<Leader>co", "<cmd>Lspsaga outgoing_calls<CR>")
+  keymap("n", "gp", "<cmd>Lspsaga peek_definition<CR>")
+  keymap("n", "gr", "<cmd>Lspsaga rename<CR>")
+  keymap("n", "<Leader>gp", "<cmd>Lspsaga preview_definition<CR>")
+  -- keymap("n", "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>")
+  keymap("n", "gi", "<cmd>Lspsaga implementation<CR>")
+  keymap("n", "<space>ca", "<cmd>Lspsaga code_action<CR>")
+  -- diagnostics prev
+  keymap("n", "[e", "<cmd>Lspsaga diagnostic_jump_prev<CR>")
+  -- diagnostics next
+  keymap("n", "]e", "<cmd>Lspsaga diagnostic_jump_next<CR>")
 
-local init_options = {
-	["settings"] = set_map,
-	["workspaceFolders"] = extra_folders,
-	["extendedClientCapabilities"] = extendedClientCapabilities,
-	["dynamicRegistration"] = true,
+end
+
+M.default_config = {
+  enable_type  = {
+    "lua",
+    "go",
+    "rust",
+    "c",
+    "python",
+    "json",
+    "java"
+  },
+  diable_type = {
+    'tailwindcss',
+  },
+  diable_func = {
+    'find_text',
+  },
+  type_func = {
+    lua = require('vscodews.lspwrapper.luals').setup,
+    tailwindcss = require('vscodews.lspwrapper.tailwindcss').setup,
+    rust = require('vscodews.lspwrapper.rust').setup,
+    go = require('vscodews.lspwrapper.golang').setup,
+    c = require('vscodews.lspwrapper.c').setup,
+    java = function (o)
+      require('vscodews.lspwrapper.jdtls').setup(o)
+      require("spring_boot_dash").setup(o)
+    end,
+    py = require('vscodews.lspwrapper.python').setup,
+    json = require('vscodews.lspwrapper.jsonls').setup,
+  },
 }
-
----@param opts table
-function M.setup(opts)
-	-- vim.notify_once("Setting up LSP", vim.log.levels.INFO)
-	local extra_folders_map = {}
-	local workspace_folders = {}
-	for _, ws_config in ipairs(opts.folders) do
-		table.insert(extra_folders, wrap_workspace_folder_path(ws_config.path))
-		extra_folders_map[ws_config.name] = wrap_workspace_folder_path(ws_config.path)
-		local single_workspace_folder = { uri = wrap_workspace_folder_path(ws_config.path), name = ws_config.name }
-		table.insert(workspace_folders, single_workspace_folder)
-	end
-	lspconfig.jdtls.setup({
-		cmd = {
-			"jdtls",
-			"--java-executeable",
-			util.process_path_with_env("$HOME/Library/Java/JavaVirtualMachines/temurin-21.0.3/Contents/Home/bin/java"),
-			"--configuration",
-			util.process_path_with_env("$HOME/.cache/jdtls/config"),
-			-- "-data",
-			-- util.process_path_with_env("$HOME/.cache/jdtls/workspace/data-1"),
-			"-vmargs",
-			"-Xmx4G",
-			util.process_path_with_env("--jvm-arg=-javaagent:$HOME/.m2/repository/org/projectlombok/lombok/1.18.26/lombok-1.18.26.jar"),
-			"--jvm-arg=-Dlog.level=ALL",
-			"-debug",
-		},
-		init_options = init_options,
-		workspace_folders = workspace_folders,
-		workspace_folders_dir = extra_folders,
-		workspace_folders_dir_map = extra_folders_map,
-	})
+---@param c table
+M.setup = function(c)
+  vim.lsp.set_log_level("info")
+  local config = vim.tbl_extend("force", M.default_config, c)
+  config.on_attach = on_attach
+  -- local capabilities = require('blink.cmp').get_lsp_capabilities()
+  config.capabilities = capabilities
+  local enable_type = config.enable_type or M.default_config.enable_type
+  local diable_type = config.diable_type or M.default_config.diable_type
+  --local diable_func = config.diable_func or M.default_config.diable_func
+  local type_func = config.type_func or M.default_config.type_func
+  -- prepare
+  for _, v in ipairs(enable_type) do
+    -- check if exist in diable_type
+    if not vim.tbl_contains(diable_type, v) then
+      if type_func[v] then
+        type_func[v](config)
+      end
+    end
+  end
 end
 
 return M
