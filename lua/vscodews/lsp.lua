@@ -5,16 +5,12 @@ local on_init = function(client, _)
     client.server_capabilities.semanticTokensProvider = nil
   end
 end
-local on_attach = function(args)
-  if not args.data then
-    return
-  end
-  local client = vim.lsp.get_client_by_id(args.data.client_id)
-  vim.keymap.set('n', 'K', vim.lsp.buf.hover, { buffer = args.buf })
-  --
+
+local on_attach = function(client, bufnr)
+  vim.keymap.set('n', 'K', vim.lsp.buf.hover, { buffer = bufnr })
   local keymap = vim.keymap.set
   local function opts(desc)
-    return { buffer = args.buf, desc = "LSP " .. desc , noremap = true, silent = true}
+    return { buffer = bufnr, desc = "LSP " .. desc , noremap = true, silent = true}
   end
   keymap("n", "<leader>wl", function()
     print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
@@ -43,16 +39,17 @@ local on_attach = function(args)
   keymap("n", "[e", "<cmd>Lspsaga diagnostic_jump_prev<CR>")
   -- diagnostics next
   keymap("n", "]e", "<cmd>Lspsaga diagnostic_jump_next<CR>")
-  if client and vim.lsp.buf.completion and client.server_capabilities.completionProvider then
+  if client and vim.lsp.buf.completion and client.server_capabilities and client.server_capabilities.completionProvider then
     keymap("i", "<C-k>", vim.lsp.buf.completion, opts "Show completion")
     --   --previous completion item
-    --   keymap("i", "<C-p>", vim.lsp.buf.completion_prev, opts "Previous completion item")
-    --   --next completion item
-    --   keymap("i", "<C-n>", vim.lsp.buf.completion_next, opts "Next completion item")
-    --   print(client.name .. "Completion supported")
+      keymap("i", "<C-p>", vim.lsp.buf.completion_prev, opts "Previous completion item")
+      --next completion item
+      keymap("i", "<C-n>", vim.lsp.buf.completion_next, opts "Next completion item")
   end
 
 end
+
+
 
 M.default_config = {
   enable_type  = {
@@ -60,7 +57,7 @@ M.default_config = {
     "go",
     "rust",
     "c",
-    "python",
+    "py",
     "json",
     "java"
   },
@@ -77,7 +74,7 @@ M.default_config = {
     go = require('vscodews.lspwrapper.golang').setup,
     c = require('vscodews.lspwrapper.c').setup,
     java = require('vscodews.lspwrapper.jdtls').setup,
-    python = require('vscodews.lspwrapper.python').setup,
+    py = require('vscodews.lspwrapper.python').setup,
     json = require('vscodews.lspwrapper.jsonls').setup,
   },
 }
@@ -87,7 +84,7 @@ M.setup = function(c)
   local config = vim.tbl_extend("force", M.default_config, c)
   config.on_attach = on_attach
   -- local capabilities = require('blink.cmp').get_lsp_capabilities()
-  config.capabilities = capabilities
+  -- config.capabilities = capabilities
   local enable_type = config.enable_type or M.default_config.enable_type
   local diable_type = config.diable_type or M.default_config.diable_type
   --local diable_func = config.diable_func or M.default_config.diable_func
@@ -97,6 +94,7 @@ M.setup = function(c)
     -- check if exist in diable_type
     if not vim.tbl_contains(diable_type, v) then
       if type_func[v] then
+        vim.api.nvim_create_autocmd('LspAttach', { callback = on_attach, pattern = "*" .. "." .. v })
         type_func[v](config)
       end
     end

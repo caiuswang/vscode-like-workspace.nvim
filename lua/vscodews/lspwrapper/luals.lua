@@ -4,10 +4,9 @@ local lspconfig = require("lspconfig")
 local M = {}
 M.setup = function (opts)
   local runtime_path = vim.split(package.path, ';')
-
   lspconfig.lua_ls.setup{
     on_attach = opts.on_attach,
-    capabilities = opts.capabilities,
+    -- capabilities = opts.capabilities,
     settings = {
       Lua = {
         diagnostics = {
