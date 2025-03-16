@@ -35,10 +35,12 @@ local function wrap_workspace_folder_path(path)
 end
 
 M.setup = function (opts)
+  -- require("spring_boot").init_lsp_commands()
   local extendedClientCapabilities = {
     ["classFileContentsSupport"] = false,
     ["advancedExtractRefactoringSupport"] = true,
     ["dynamicRegistration"] = true,
+    ["single_file_suuport"] = false
   }
   --- @alias Config  vim.lsp.ClientConfig
   local set_map = {
@@ -58,20 +60,33 @@ M.setup = function (opts)
     table.insert(workspace_folders, single_workspace_folder)
   end
   local jdtls_data_path = get_jdtls_workspace_dir(opts.folders)
+  local bundles =  {
+    util.process_path_with_env("$HOME/.vscode-insiders/extensions/vmware.vscode-spring-boot-1.61.0/jars/io.projectreactor.reactor-core.jar"),
+    util.process_path_with_env("$HOME/.vscode-insiders/extensions/vmware.vscode-spring-boot-1.61.0/jars/org.reactivestreams.reactive-streams.jar"),
+    util.process_path_with_env("$HOME/.vscode-insiders/extensions/vmware.vscode-spring-boot-1.61.0/jars/org.reactivestreams.reactive-streams.jar"),
+    util.process_path_with_env("$HOME/.vscode-insiders/extensions/vmware.vscode-spring-boot-1.61.0/jars/jdt-ls-commons.jar"),
+    util.process_path_with_env("$HOME/.vscode-insiders/extensions/vmware.vscode-spring-boot-1.61.0/jars/sts-gradle-tooling.jar"),
+  }
   local init_options = {
     workspace = jdtls_data_path,
-    jvm_args = {"-Dlog.level=INFO"},
+    jvm_args = {"-Dlog.level=DEBUG"},
     settings = set_map,
     workspaceFolders = extra_folders,
     extendedClientCapabilities = extendedClientCapabilities,
     dynamicRegistration = true,
+    bundles = bundles
   }
   lspconfig.jdtls.setup({
-    on_attach = opts.on_attach,
+    on_attach =
+    function(client, bufnr)
+      if (opts.on_attach) then
+        opts.on_attach(client, bufnr)
+      end
+    end,
     capabilities = opts.capabilities,
     cmd = {
-      "jdtls",
-      "--java-executeable",
+      env.HOME .. "/Downloads/jdt-language-server-1.45.0-202502271238/bin/jdtls",
+      "--java-executable",
       util.process_path_with_env("$HOME/Library/Java/JavaVirtualMachines/temurin-21.0.3/Contents/Home/bin/java"),
       "--configuration",
       util.process_path_with_env("$HOME/.cache/jdtls/config"),
@@ -79,15 +94,16 @@ M.setup = function (opts)
       jdtls_data_path,
       "-vmargs",
       "-Xms4G",
-      "-Xmx4G",
+      "-Xmx8G",
       util.process_path_with_env("--jvm-arg=-javaagent:$HOME/.m2/repository/org/projectlombok/lombok/1.18.26/lombok-1.18.26.jar"),
-      "--jvm-arg=-Dlog.level=ALL",
+      "--jvm-arg=-Dlog.level=DEBUG",
       "-DwatchParentProcess=false",
       "-debug",
     },
     init_options = init_options,
+    bundles = bundles,
     workspace_folders = workspace_folders,
-    workspace_folders_dir = extra_folders,
   })
 end
+
 return M
