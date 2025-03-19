@@ -79,6 +79,11 @@ function WorkspaceManager:create_user_command()
             self.active_workspace:toggle_folder()
         end
     end, { nargs = 0 })
+    vim.api.nvim_create_user_command('WorkspaceOpenSetting', function()
+        if self.active_workspace then
+            vim.cmd('e ' .. self.active_workspace.file_path)
+        end
+    end, {})
 
     vim.api.nvim_create_user_command('WorkspaceReload', function()
         if self.active_workspace then
