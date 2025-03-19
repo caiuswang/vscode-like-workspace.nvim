@@ -44,10 +44,10 @@ local on_attach = function(args)
   keymap("n", "]e", "<cmd>Lspsaga diagnostic_jump_next<CR>")
 end
 -- create LspAttach function
-  vim.api.nvim_create_autocmd("LspAttach", {
-    pattern = "*",
-    callback = on_attach,
-  })
+vim.api.nvim_create_autocmd("LspAttach", {
+  pattern = "*",
+  callback = on_attach,
+})
 
 
 M.default_config = {

@@ -1,5 +1,4 @@
-local Path = require('plenary.path')
-local log = require("vscodews.log")
+local Path = require('plenary.path') local log = require("vscodews.log")
 
 ---@class Workspace
 ---@field file_path string

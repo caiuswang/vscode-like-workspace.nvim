@@ -75,10 +75,10 @@ end
 function M._auto_delete_log_file()
   local log_file_path = M.config.log_file_path
   if vim.fn.filereadable(log_file_path) == 1 then
-      -- if file size is greater than 10MB, delete it
-        if vim.fn.getfsize(log_file_path) > 10 * 1024 * 1024 then
-            vim.fn.delete(log_file_path)
-        end
+    -- if file size is greater than 10MB, delete it
+    if vim.fn.getfsize(log_file_path) > 10 * 1024 * 1024 then
+      vim.fn.delete(log_file_path)
+    end
   end
 end
 
