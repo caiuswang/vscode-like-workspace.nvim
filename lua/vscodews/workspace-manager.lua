@@ -108,6 +108,7 @@ function WorkspaceManager:create_user_command()
 end
 
 function WorkspaceManager:init()
+  -- workspace create in cwd
   vim.api.nvim_create_autocmd('VimEnter', {
     callback = function()
       local ws_file = self:find_workspace_file()
@@ -117,6 +118,9 @@ function WorkspaceManager:init()
       else
         log.info('No workspace file found')
       end
+      vim.api.nvim_create_user_command('WorkspaceCreate', function()
+        Workspace:create_one_from_defaults()
+      end, { nargs = 0 })
     end
   })
 end
