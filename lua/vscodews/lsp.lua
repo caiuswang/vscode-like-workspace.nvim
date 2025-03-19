@@ -43,6 +43,12 @@ local on_attach = function(args)
   -- diagnostics next
   keymap("n", "]e", "<cmd>Lspsaga diagnostic_jump_next<CR>")
 end
+-- create LspAttach function
+  vim.api.nvim_create_autocmd("LspAttach", {
+    pattern = "*",
+    callback = on_attach,
+  })
+
 
 M.default_config = {
   enable_type  = {
@@ -52,7 +58,8 @@ M.default_config = {
     "c",
     "python",
     "json",
-    "java"
+    "java",
+    "javascript"
   },
   diable_type = {
     'tailwindcss',
@@ -72,15 +79,13 @@ M.default_config = {
     end,
     py = require('vscodews.lspwrapper.python').setup,
     json = require('vscodews.lspwrapper.jsonls').setup,
+    javascript =  require('lspconfig').quick_lint_js.setup
   },
 }
 ---@param c table
 M.setup = function(c)
   vim.lsp.set_log_level("info")
   local config = vim.tbl_extend("force", M.default_config, c)
-  config.on_attach = on_attach
-  -- local capabilities = require('blink.cmp').get_lsp_capabilities()
-  config.capabilities = capabilities
   local enable_type = config.enable_type or M.default_config.enable_type
   local diable_type = config.diable_type or M.default_config.diable_type
   --local diable_func = config.diable_func or M.default_config.diable_func

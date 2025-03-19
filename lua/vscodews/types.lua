@@ -1,16 +1,3 @@
-
----@class WorkspaceConfigSettingsNeovim
----@field enabled_plugins string[]
----@field keymaps table
----
-local WorkspaceConfigSettingsNeovim = {}
-
----@class WorkspaceConfigSettings
----@field neovim table
----@field editor table
-local WorkspaceConfigSettings = {}
-
-
 --- @class WorkspaceFolder
 --- @field path string
 --- @field name string
@@ -20,5 +7,32 @@ local WorkspaceFolder = {}
 
 ---@class WorkspaceConfig
 ---@field folders WorkspaceFolder[]
----@field settings table -- Neovim-specific settings
+---@field settings table 
 local WorkspaceConfig = {}
+
+
+---@class WorkspaceSettings
+---@field neovim NeoVimSettings
+local WorkspaceSettings = {}
+
+
+---@class NeoVimSettings
+---@field enabled_plugins string[]
+---@field keymaps table
+---@field editor EditorSettings
+---@field language_editor LanguageEditorSettings
+local NeoVimSettings = {}
+
+---@class EditorSettings
+---@field tabsize number
+---@field shiftwidth number
+---@field softtab boolean
+---@field expandtab boolean
+local EditorSettings = {}
+
+---@class LanguageEditorSettings
+---@field tab_size number
+---@field shift_width number
+---@field soft_tab boolean
+---@field expand_tab boolean
+local LanguageEditorSettings = {}
