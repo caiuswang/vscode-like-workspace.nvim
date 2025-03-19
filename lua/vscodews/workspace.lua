@@ -19,6 +19,25 @@ function Workspace:new(path)
   return self
 end
 
+
+function Workspace:create_one_from_defaults()
+  -- open default settins from $HOME/.nvim/nvim-workspace.json
+  local default_path = Path:new(vim.fn.expand("$HOME")):joinpath(".nvim")
+  local default_config_path = default_path:joinpath("nvim-workspace.json")
+  local ws = Workspace:new(default_config_path.filename)
+  ws:load()
+  local content = vim.json.encode(ws.config)
+  local new_file_dir = Path:new(vim.fn.getcwd()):joinpath(".nvim")
+  if not new_file_dir:exists() then
+    new_file_dir:mkdir()
+  end
+  local new_config_path = new_file_dir:joinpath("nvim-workspace.json")
+  new_config_path:write(content, 'w')
+  vim.notify("Workspace saved: " .. new_config_path.filename)
+  ws:load()
+  return ws
+end
+
 function Workspace:load()
   -- Add debug statements in your workspace code
   local ok, content = pcall(Path:new(self.file_path).read, Path:new(self.file_path))
