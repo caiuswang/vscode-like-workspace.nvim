@@ -8,7 +8,7 @@ local required_plugins = {
     info = "(Required for `:Telescope treesitter`.)",
   },
   {
-      lib = "lspconfig",
+    lib = "lspconfig",
   },
 }
 
@@ -39,30 +39,30 @@ local function run_command(executable, command)
 end
 
 M.check = function()
-    vim.health.start("check neovim")
-    print("Checking health...")
-    vim.health.info("check neovim", "info", "Checking health...")
-    vim.health.ok("check neovim")
-    for _, plugin in ipairs(required_plugins) do
-        if lualib_installed(plugin.lib) then
-            vim.health.ok(plugin.lib .. " installed.")
-        else
-            local lib_not_installed = plugin.lib .. " not found."
-            if plugin.optional then
-                vim.health.warn(("%s %s"):format(lib_not_installed, plugin.info))
-            else
-                vim.health.error(lib_not_installed)
-            end
-        end
+  vim.health.start("check neovim")
+  print("Checking health...")
+  vim.health.info("check neovim", "info", "Checking health...")
+  vim.health.ok("check neovim")
+  for _, plugin in ipairs(required_plugins) do
+    if lualib_installed(plugin.lib) then
+      vim.health.ok(plugin.lib .. " installed.")
+    else
+      local lib_not_installed = plugin.lib .. " not found."
+      if plugin.optional then
+        vim.health.warn(("%s %s"):format(lib_not_installed, plugin.info))
+      else
+        vim.health.error(lib_not_installed)
+      end
     end
-    for _, executable in ipairs(required_executables) do
-        local result = run_command(executable.name, executable.args)
-        if result then
-            vim.health.ok(("%s installed."):format(executable.name))
-        else
-            vim.health.error(("%s not found. %s"):format(executable.name, executable.info))
-        end
+  end
+  for _, executable in ipairs(required_executables) do
+    local result = run_command(executable.name, executable.args)
+    if result then
+      vim.health.ok(("%s installed."):format(executable.name))
+    else
+      vim.health.error(("%s not found. %s"):format(executable.name, executable.info))
     end
+  end
 
 end
 return M
