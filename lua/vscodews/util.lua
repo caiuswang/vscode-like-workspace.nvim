@@ -8,5 +8,9 @@ function M.process_path_with_env(path)
   return path
 end
 
+function M:path_join(...)
+  return table.concat({...}, '/')
+end
+
 return M
 
