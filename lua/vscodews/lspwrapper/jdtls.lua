@@ -1,7 +1,6 @@
 local M = {}
 local lspconfig = require("lspconfig")
 local util = require("vscodews.util")
-local lspconfig_util = require("lspconfig.util")
 
 local env = {
   HOME = vim.uv.os_homedir(),
@@ -9,11 +8,11 @@ local env = {
   JDTLS_JVM_ARGS = os.getenv 'JDTLS_JVM_ARGS',
 }
 local function get_cache_dir()
-  return env.XDG_CACHE_HOME and env.XDG_CACHE_HOME or lspconfig_util.path.join(env.HOME, '.cache')
+  return env.XDG_CACHE_HOME and env.XDG_CACHE_HOME or util:path_join(env.HOME, '.cache')
 end
 
 local function get_jdtls_cache_dir()
-  return lspconfig_util.path.join(get_cache_dir(), 'jdtls')
+  return table.concat({get_cache_dir(), 'jdtls'})
 end
 
 ---@param workspaceFolders table
@@ -25,7 +24,7 @@ local function get_jdtls_workspace_dir(workspaceFolders)
   end
   -- sha1 cwd
   local cwd_sha1 = vim.fn.systemlist("echo -n "..all_paths.." | sha1sum | awk '{print $1}'")[1]
-  return lspconfig_util.path.join(get_jdtls_cache_dir(), 'workspace', cwd_sha1)
+  return util:path_join(get_jdtls_cache_dir(), 'workspace', cwd_sha1)
 end
 local function wrap_workspace_folder_path(path)
   if path == nil then
@@ -33,18 +32,37 @@ local function wrap_workspace_folder_path(path)
   end
   return "file://" .. path
 end
+local disable_completeTypes = {
+  "antlr.*",
+  "com.sun.*",
+  "groovyjarjarantlr.*",
+  "org.apache.xmlbeans.*",
+  "org.hibernate.mapping.*",
+  "groovyjarjarantlr.collections.*",
+  "java.awt.*",
+  "org.apache.commons.collections.*",
+}
+
+local import_orders = {
+  "java",
+  "javax",
+  "com.lucky.lotttery.lotto",
+  "com.lucky.lotttery",
+  "org.apache.commons",
+  "org",
+  "com"
+}
 
 M.setup = function (opts)
-  -- require("spring_boot").init_lsp_commands()
   local extendedClientCapabilities = {
     ["classFileContentsSupport"] = false,
     ["advancedExtractRefactoringSupport"] = true,
     ["dynamicRegistration"] = true,
     ["single_file_suuport"] = false
   }
-  --- @alias Config  vim.lsp.ClientConfig
   local set_map = {
-    ["java.completion.filteredTypes"] = "antlr.* com.sun.* groovyjarjarantlr.* org.apache.xmlbeans.* org.hibernate.mapping.* groovyjarjarantlr.collections.* java.awt.*",
+    ["java.completion.filteredTypes"] = table.concat(disable_completeTypes, ' '),
+    ["java.completion.importOrder"] = table.concat(import_orders, ","),
     ["java.autobuild.enabled"] = false,
     ["java.format.enabled"] = true,
     ["java.completion.chain.enabled"] = true,
@@ -60,6 +78,7 @@ M.setup = function (opts)
     table.insert(workspace_folders, single_workspace_folder)
   end
   local jdtls_data_path = get_jdtls_workspace_dir(opts.folders)
+  vim.print(jdtls_data_path)
   local bundles =  {
     util.process_path_with_env("$HOME/.vscode-insiders/extensions/vmware.vscode-spring-boot-1.61.0/jars/io.projectreactor.reactor-core.jar"),
     util.process_path_with_env("$HOME/.vscode-insiders/extensions/vmware.vscode-spring-boot-1.61.0/jars/org.reactivestreams.reactive-streams.jar"),
@@ -76,6 +95,7 @@ M.setup = function (opts)
     dynamicRegistration = true,
     bundles = bundles
   }
+  local jdtls_bin_path = opts.bin_path or (env.HOME .. "/Downloads/jdt-language-server-1.45.0-202502271238/bin/jdtls")
   lspconfig.jdtls.setup({
     on_attach =
     function(client, bufnr)
@@ -85,7 +105,7 @@ M.setup = function (opts)
     end,
     capabilities = opts.capabilities,
     cmd = {
-      env.HOME .. "/Downloads/jdt-language-server-1.45.0-202502271238/bin/jdtls",
+      jdtls_bin_path,
       "--java-executable",
       util.process_path_with_env("$HOME/Library/Java/JavaVirtualMachines/temurin-21.0.3/Contents/Home/bin/java"),
       "--configuration",

@@ -1,3 +1,4 @@
+require('vscodews.constants')
 local Path = require('plenary.path')
 local Workspace = require('vscodews.workspace')
 local log = require('vscodews.log')
@@ -11,7 +12,7 @@ local WorkspaceManager = {
 function WorkspaceManager:find_workspace_file(start_dir)
   local dir = Path:new(start_dir or vim.fn.getcwd())
   for _ = 1, 10 do -- Search up to 10 parent directories
-    local candidate = dir:joinpath('.nvim/nvim-workspace.json')
+    local candidate = dir:joinpath(NVIM_SETTING_CONFIG_BASE_DIR):joinpath(WORKSPACE_FILE_NAME)
     if candidate:exists() then
       log.info('Found workspace file: ' .. candidate.filename)
       return candidate.filename

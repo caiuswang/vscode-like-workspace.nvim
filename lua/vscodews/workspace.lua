@@ -1,9 +1,9 @@
-local Path = require('plenary.path') local log = require("vscodews.log")
+local Path = require('plenary.path')
+local log = require("vscodews.log")
 
 ---@class Workspace
 ---@field file_path string
 ---@field config WorkspaceConfig
----@field get_enabled_folders fun(): WorkspaceFolder[]
 local Workspace = {}
 
 Workspace.__index = Workspace
@@ -21,19 +21,20 @@ end
 
 
 function Workspace:create_one_from_defaults()
-  -- open default settins from $HOME/.nvim/nvim-workspace.json
-  local default_path = Path:new(vim.fn.expand("$HOME")):joinpath(".nvim")
-  local default_config_path = default_path:joinpath("nvim-workspace.json")
-  local ws = Workspace:new(default_config_path.filename)
+  local ws = Workspace:new(USER_DEFAULT_WORKSPACE_FILE_NAME.filename)
   ws:load()
+  -- remove all folders
+  ws.config.folders = {}
+  -- add current cwd to workspace
+  ws:add_folder(vim.fn.getcwd(), 'current')
   local content = vim.json.encode(ws.config)
-  local new_file_dir = Path:new(vim.fn.getcwd()):joinpath(".nvim")
+  local new_file_dir = Path:new(vim.fn.getcwd()):joinpath(NVIM_SETTING_CONFIG_BASE_DIR)
   if not new_file_dir:exists() then
     new_file_dir:mkdir()
   end
-  local new_config_path = new_file_dir:joinpath("nvim-workspace.json")
+  local new_config_path = new_file_dir:joinpath(WORKSPACE_FILE_NAME)
   new_config_path:write(content, 'w')
-  vim.notify("Workspace saved: " .. new_config_path.filename)
+  vim.notify("Workspace saved: " .. new_config_path.filename, vim.log.levels.INFO)
   ws:load()
   return ws
 end
@@ -42,7 +43,7 @@ function Workspace:load()
   -- Add debug statements in your workspace code
   local ok, content = pcall(Path:new(self.file_path).read, Path:new(self.file_path))
   if not ok then
-    log.info("Workspace file not found: " .. (self.file_path or "nil"))
+    log.error("Workspace file not found: " .. (self.file_path or "nil"))
     return
   end
 
