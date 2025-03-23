@@ -41,7 +41,6 @@ end
 M.check = function()
   vim.health.start("check neovim")
   print("Checking health...")
-  vim.health.info("check neovim", "info", "Checking health...")
   vim.health.ok("check neovim")
   for _, plugin in ipairs(required_plugins) do
     if lualib_installed(plugin.lib) then

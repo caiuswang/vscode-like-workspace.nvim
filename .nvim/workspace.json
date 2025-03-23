@@ -1,0 +1,63 @@
+{ 
+    "folders": [
+        {
+            "name": "lazy",
+            "path": "$HOME/.local/share/nvim/lazy/",
+            "modules": [
+                "nvim-lspconfig"
+            ]
+        },
+        {
+            "name": "local-config",
+            "path": "$HOME/taowang/.config/nvim/"
+        },
+        {
+            "name": "vscodews",
+            "path": "$HOME/.local/share/nvim/lazy/vscodews.nvim/"
+        }
+    ],
+    "settings": {
+        "files.exclude": {
+            "**/node_modules": true,
+            "**/.git": true
+        },
+        "neovim": {
+            "editor": {
+                "tabsize": 2,
+                "shiftwidth": 2,
+                "softtabstop": 2,
+                "expandtab": true,
+                "spell": true
+
+            },
+            "language_editor": {
+                "java": {
+                    "tabsize": 4,
+                    "shiftwidth": 4,
+                    "softtabstop": 4,
+                    "expandtab": true
+                },
+                "lua": {
+                    "tabsize": 2,
+                    "shiftwidth": 2,
+                    "softtabstop": 2,
+                    "expandtab": true
+                },
+                "json": {
+                    "tabsize": 4,
+                    "shiftwidth": 4,
+                    "softtabstop": 4,
+                    "expandtab": true
+                }
+            },
+            "keymaps": {
+                "workspace.save": "<leader>ws",
+                "workspace.reload": "<leader>wr"
+            },
+            "enabled_plugins": [
+                "telescope.nvim",
+                "nvim-tree.lua"
+            ]
+        }
+    }
+}
