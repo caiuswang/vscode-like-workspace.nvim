@@ -28,6 +28,7 @@ local NeoVimSettings = {}
 ---@field shiftwidth number
 ---@field softtab boolean
 ---@field expandtab boolean
+---@field spell boolean
 local EditorSettings = {}
 
 ---@class LanguageEditorSettings

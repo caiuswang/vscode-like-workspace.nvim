@@ -79,7 +79,12 @@ function Workspace:_apply_settings()
       self:_setup_keymaps(nvim_settings.keymaps)
     end
     if nvim_settings.editor then
-      self:_setup_editor_settings(nvim_settings.editor)
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = "*",
+        callback = function()
+          self:_setup_editor_settings(nvim_settings.editor)
+        end
+      })
     end
     if nvim_settings.language_editor then
       --create aucmd by file type
@@ -87,7 +92,6 @@ function Workspace:_apply_settings()
         vim.api.nvim_create_autocmd("BufEnter", {
           pattern = "*." .. file_type,
           callback = function()
-            vim.notify("Setting up editor settings for " .. file_type, vim.log.levels.DEBUG)
             self:_setup_editor_settings(editor_settings)
           end
         })
@@ -108,6 +112,10 @@ function Workspace:_setup_editor_settings(editor_settings)
   end
   if editor_settings.expandtab then
     vim.bo.expandtab = editor_settings.expandtab
+  end
+  if editor_settings.spell then
+    -- enable for all file types
+    vim.cmd("setlocal spell spelllang=en_us,cjk")
   end
 end
 function Workspace:_setup_keymaps(keymaps)
