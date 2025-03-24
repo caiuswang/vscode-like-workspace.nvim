@@ -1,6 +1,4 @@
 local f = require("vscodews.file")
-local log = require("vscodews.log")
-local Path = require('plenary.path')
 require("vscodews.types")
 
 --- @class Project
