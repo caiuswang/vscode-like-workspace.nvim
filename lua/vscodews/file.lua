@@ -18,6 +18,7 @@ package.cpath = package.cpath .. ';' .. os.getenv("HOME") .. "/.luarocks/lib/lua
 local M = {
   search_only_project = false,
   workspace_folders = {},
+  config_root = nil,
   type_project_root_func_map = {
   },
   path_display = {
@@ -38,6 +39,13 @@ function M.find_file_at_cursor()
   local opts = M.create_default_opts()
   opts.search_file = word
 
+  M.search_file(opts)
+end
+
+function M.find_file_with_input()
+  local text = vim.fn.input('Search file: ')
+  local opts = M.create_default_opts()
+  opts.search_file = text
   M.search_file(opts)
 end
 
@@ -146,6 +154,11 @@ function M.find_text_at_cursor()
   f_text(word, M.create_default_opts())
 end
 
+function M.find_text_with_input()
+  local text = vim.fn.input('Search text: ')
+  f_text(text, M.create_default_opts())
+end
+
 function M.create_default_opts()
   local opt = {}
   opt.prompt_prefix = '🔍'
@@ -156,17 +169,29 @@ end
 
 function M.get_search_folder()
   local menu_items = {}
-  menu_items[1] = "0: All workspace folders"
-  for i, folder in pairs(M.workspace_folders) do
-    menu_items[i+1] = i .. ". ".. folder.name .. ": " ..folder.path
+  local index =  0
+  local offset = 1
+  menu_items[offset] = index .. ": All workspace folders"
+  -- add config root
+  if M.config_root ~= nil then
+    index = index + 1
+    offset = offset + 1
+    menu_items[offset] = index.. ": Config Root: " .. M.config_root
   end
-  menu_items[#M.workspace_folders + 2]  = #M.workspace_folders + 1 ..". All Recent Files"
+  for _, folder in pairs(M.workspace_folders) do
+    index = index + 1
+    offset = offset + 1
+    menu_items[offset] = index .. ". ".. folder.name .. ": " ..folder.path
+  end
+  offset = offset + 1
+  index = index + 1
+  menu_items[offset]  = index ..". All Recent Files"
   local choice = vim.fn.inputlist(menu_items)
-  if choice == nil or choice <= 0 or choice > #M.workspace_folders + 1 then
+  if choice == nil or choice <= 0 or choice > offset then
     return vim.tbl_map(function(folder) return folder.path end, M.workspace_folders)
   end
 
-  if choice == #M.workspace_folders + 1 then
+  if choice == offset then
     return nil
   end
   return {M.workspace_folders[choice].path}
@@ -318,9 +343,11 @@ function M.register_keymap()
   vim.keymap.set('n', '<leader>fr', M.lsp_references, opts("Show references"))
   vim.keymap.set('n', '<leader>ft', M.find_text_in_selection, opts("Find text in selection"))
   vim.keymap.set('n', '<leader>ff', M.find_file_at_cursor, opts("Find file at cursor"))
+  vim.keymap.set('n', '<leader>fd', M.find_file_with_input, opts("Find file with input"))
   vim.keymap.set('n', '<leader>fe', M.find_recent_files, opts("Find recent files"))
   vim.keymap.set('n', '<leader>fi', M.lsp_implementations, opts("Find implementations"))
   vim.keymap.set('n', '<leader>fw', M.find_text_at_cursor, opts("Find text at cursor"))
+  vim.keymap.set('n', '<leader>fs', M.find_text_with_input, opts("Find text with input"))
   vim.keymap.set('v', '<leader>fw', M.find_text_in_selection, opts("Find text in selection"))
   vim.keymap.set('n', 'gd', M.telescope_find_definition, opts("Find definition"))
 end
@@ -336,6 +363,9 @@ function M.setup(opts)
   if opts.folders ~= nil then
     M.workspace_folders = opts.folders
     M.init_search_lib(M.workspace_folders)
+  end
+  if opts.config_root ~= nil then
+    M.config_root = opts.config_root
   end
   M.register_autocmd()
   M.register_keymap()

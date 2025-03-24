@@ -4,6 +4,7 @@ local log = require("vscodews.log")
 ---@class Workspace
 ---@field file_path string
 ---@field config WorkspaceConfig
+---@field config_root string
 local Workspace = {}
 
 Workspace.__index = Workspace
@@ -11,6 +12,7 @@ Workspace.__index = Workspace
 function Workspace:new(path)
   self = setmetatable({}, Workspace)
   self.file_path = path
+  self.config_root = Path:new(path):parent():parent().filename
   self.config = {
     folders = {},
     settings = {}

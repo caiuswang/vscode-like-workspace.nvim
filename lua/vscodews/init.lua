@@ -16,6 +16,7 @@ WorkspaceManager:register_post_load_callback(function(workspace)
   -- Custom actions to perform after the workspace has loaded
   local opts = {}
   opts.folders = workspace:get_enabled_folders()
+  opts.config_root = workspace.config_root
   local lsp = require('vscodews.lsp')
   lsp.setup(opts)
   log.info('Registered LSP for workspace:', workspace.file_path)
