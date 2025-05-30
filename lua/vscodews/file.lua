@@ -171,30 +171,31 @@ function M.get_search_folder()
   local menu_items = {}
   local index =  0
   local offset = 1
-  menu_items[offset] = index .. ": All workspace folders"
+  menu_items[index + 1] = index .. ": All workspace folders"
   -- add config root
   if M.config_root ~= nil then
     index = index + 1
     offset = offset + 1
-    menu_items[offset] = index.. ": Config Root: " .. M.config_root
+    menu_items[index + 1] = index.. ": Config Root: " .. M.config_root
   end
   for _, folder in pairs(M.workspace_folders) do
     index = index + 1
-    offset = offset + 1
-    menu_items[offset] = index .. ". ".. folder.name .. ": " ..folder.path
+    menu_items[index + 1] = index .. ". ".. folder.name .. ": " ..folder.path
   end
-  offset = offset + 1
-  index = index + 1
-  menu_items[offset]  = index ..". All Recent Files"
+  menu_items[index + 1]  = index ..". All Recent Files"
   local choice = vim.fn.inputlist(menu_items)
-  if choice == nil or choice <= 0 or choice > offset then
+  if choice == nil or choice <= 0 or choice > index  then
     return vim.tbl_map(function(folder) return folder.path end, M.workspace_folders)
   end
+  if M.config_root ~= nil and choice == 1 then
+    return {M.config_root}
+  end
 
-  if choice == offset then
+  if choice == index  then
     return nil
   end
-  return {M.workspace_folders[choice].path}
+  local actual_index_in_workspace = choice - offset + 1
+  return {M.workspace_folders[actual_index_in_workspace].path}
 end
 
 function M.find_text_in_selection()
