@@ -86,14 +86,8 @@ M.setup = function (opts)
     -- util.process_path_with_env("$HOME/.vscode/extensions/vmware.vscode-spring-boot-1.60.0/jars/sts-gradle-tooling.jar"),
     -- vim.fn.glob(util.process_path_with_env("$HOME/.vscode-insiders/extensions/vmware.vscode-spring-boot-1.61.1/jars/*.jar")),
   }
-  local jvm_args = {
-      util.process_path_with_env("--jvm-arg=-javaagent:$HOME/.m2/repository/org/projectlombok/lombok/1.18.26/lombok-1.18.26.jar"),
-      "--jvm-arg=-Dlog.level=DEBUG",
-      "--jvm-arg=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5007",
-  }
   local init_options = {
     workspace = jdtls_data_path,
-    jvm_args = {"-Dlog.level=DEBUG"},
     settings = set_map,
     workspaceFolders = extra_folders,
     -- extendedClientCapabilities = extendedClientCapabilities,
@@ -117,7 +111,7 @@ M.setup = function (opts)
     "-vmargs",
     "-Xms4G",
     "-Xmx8G",
-    -- util.process_path_with_env("--jvm-arg=-javaagent:$HOME/.m2/repository/org/projectlombok/lombok/1.18.26/lombok-1.18.26.jar"),
+    util.process_path_with_env("--jvm-arg=-javaagent:$HOME/.m2/repository/org/projectlombok/lombok/1.18.26/lombok-1.18.26.jar"),
     "--jvm-arg=-Dlog.level=DEBUG",
     -- "--jvm-arg=-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5007",
     "-DwatchParentProcess=false",
