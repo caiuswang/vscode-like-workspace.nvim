@@ -25,7 +25,7 @@ local on_attach = function(args)
   keymap('n', '<space>wl', vim.lsp.buf.list_workspace_folders, opts "List workspace folders")
   keymap('n', '<space>D', vim.lsp.buf.type_definition, opts "Go to type definition")
   keymap('n', '<space>rn', vim.lsp.buf.rename, opts "Rename")
-  keymap('n', '<space>ca', vim.lsp.buf.code_action, opts "Code action")
+  -- keymap('n', '<space>ca', vim.lsp.buf.code_action, opts "Code action")
   keymap('n', 'gr', vim.lsp.buf.references, opts "Show references")
   keymap("n", "gh", "<cmd>Lspsaga finder<CR>", opts "Show finder")
   keymap("n", "gs", "<cmd>Lspsaga signature_help<CR>", opts "Show signature help")
@@ -73,11 +73,11 @@ M.default_config = {
     rust = require('vscodews.lspwrapper.rust').setup,
     go = require('vscodews.lspwrapper.golang').setup,
     c = require('vscodews.lspwrapper.c').setup,
+    -- python = require('vscodews.lspwrapper.python').setup,
     java = function (o)
-      require('vscodews.lspwrapper.jdtls').setup(o)
-      require("spring_boot_dash").setup(o)
+      -- require('vscodews.lspwrapper.jdtls').setup(o)
+      -- require("spring_boot_dash").setup(o)
     end,
-    py = require('vscodews.lspwrapper.python').setup,
     json = require('vscodews.lspwrapper.jsonls').setup,
     javascript =  require('lspconfig').quick_lint_js.setup
   },
@@ -86,6 +86,7 @@ M.default_config = {
 M.setup = function(c)
   vim.lsp.set_log_level("info")
   local config = vim.tbl_extend("force", M.default_config, c)
+  -- config.capabilities = config.capabilities or vim.lsp.protocol.make_client_capabilities()
   local enable_type = config.enable_type or M.default_config.enable_type
   local diable_type = config.diable_type or M.default_config.diable_type
   --local diable_func = config.diable_func or M.default_config.diable_func

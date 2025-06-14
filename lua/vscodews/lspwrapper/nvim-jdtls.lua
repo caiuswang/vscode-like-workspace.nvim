@@ -1,5 +1,4 @@
 local M = {}
-local lspconfig = require("lspconfig")
 local util = require("vscodews.util")
 
 local env = {
@@ -80,32 +79,21 @@ M.setup = function (opts)
     util.process_path_with_env("$HOME/.vscode-insiders/extensions/vmware.vscode-spring-boot-1.61.1/jars/org.reactivestreams.reactive-streams.jar"),
     util.process_path_with_env("$HOME/.vscode-insiders/extensions/vmware.vscode-spring-boot-1.61.1/jars/jdt-ls-commons.jar"),
     util.process_path_with_env("$HOME/.vscode-insiders/extensions/vmware.vscode-spring-boot-1.61.1/jars/sts-gradle-tooling.jar"),
-    -- util.process_path_with_env("$HOME/.vscode/extensions/vmware.vscode-spring-boot-1.60.0/jars/io.projectreactor.reactor-core.jar"),
-    -- util.process_path_with_env("$HOME/.vscode/extensions/vmware.vscode-spring-boot-1.60.0/jars/org.reactivestreams.reactive-streams.jar"),
-    -- util.process_path_with_env("$HOME/.vscode/extensions/vmware.vscode-spring-boot-1.60.0/jars/jdt-ls-commons.jar"),
-    -- util.process_path_with_env("$HOME/.vscode/extensions/vmware.vscode-spring-boot-1.60.0/jars/sts-gradle-tooling.jar"),
+    -- util.process_path_with_env("$HOME/.vscode/extensions/vmware.vscode-spring-boot-1.61.1/jars/io.projectreactor.reactor-core.jar"),
+    -- util.process_path_with_env("$HOME/.vscode/extensions/vmware.vscode-spring-boot-1.61.1/jars/org.reactivestreams.reactive-streams.jar"),
+    -- util.process_path_with_env("$HOME/.vscode/extensions/vmware.vscode-spring-boot-1.61.1/jars/jdt-ls-commons.jar"),
+    -- util.process_path_with_env("$HOME/.vscode/extensions/vmware.vscode-spring-boot-1.61.1/jars/sts-gradle-tooling.jar"),
     -- vim.fn.glob(util.process_path_with_env("$HOME/.vscode-insiders/extensions/vmware.vscode-spring-boot-1.61.1/jars/*.jar")),
   }
-  local jvm_args = {
-      util.process_path_with_env("--jvm-arg=-javaagent:$HOME/.m2/repository/org/projectlombok/lombok/1.18.26/lombok-1.18.26.jar"),
-      "--jvm-arg=-Dlog.level=DEBUG",
-      "--jvm-arg=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5007",
-  }
   local init_options = {
-    workspace = jdtls_data_path,
+    -- workspace = jdtls_data_path,
     jvm_args = {"-Dlog.level=DEBUG"},
     settings = set_map,
-    workspaceFolders = extra_folders,
+    -- workspaceFolders = extra_folders,
     -- extendedClientCapabilities = extendedClientCapabilities,
     dynamicRegistration = true,
+    bundles = bundles
   }
-  -- local capabilities = vim.lsp.protocol.make_client_capabilities()
-  -- capabilities = vim.tbl_deep_extend("force", vim.lsp.protocol.make_client_capabilities(), {
-  --   workspace = {
-  --     executeCommand = { value = true , dynamicRegistration = true },
-  --     dynamicRegistration = true,
-  --   },
-  -- })
   local cmd = {
     opts.bin_path or util.get_jdtls_executable(),
     "--java-executable",
@@ -117,19 +105,17 @@ M.setup = function (opts)
     "-vmargs",
     "-Xms4G",
     "-Xmx8G",
-    -- util.process_path_with_env("--jvm-arg=-javaagent:$HOME/.m2/repository/org/projectlombok/lombok/1.18.26/lombok-1.18.26.jar"),
+    util.process_path_with_env("--jvm-arg=-javaagent:$HOME/.m2/repository/org/projectlombok/lombok/1.18.26/lombok-1.18.26.jar"),
     "--jvm-arg=-Dlog.level=DEBUG",
-    -- "--jvm-arg=-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5007",
+    -- "--jvm-arg=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5007",
     "-DwatchParentProcess=false",
     "-debug",
   }
   vim.print(table.concat(cmd, ' '))
-  lspconfig.jdtls.setup({
+  require('jdtls').start_or_attach({
     cmd = cmd,
-    -- capabilities = capabilities,
     on_attach =
     function(client, bufnr)
-      vim.notify("JDTLS attached")
       if (opts.on_attach) then
         opts.on_attach(client, bufnr)
       end
@@ -141,4 +127,3 @@ M.setup = function (opts)
 end
 
 return M
-

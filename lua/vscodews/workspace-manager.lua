@@ -45,12 +45,22 @@ end
 
 ---@param callback fun(workspace: Workspace)
 function WorkspaceManager:register_pre_load_callback(callback)
-  table.insert(self.pre_load_callbacks, callback)
+  local filter_table = vim.tbl_filter(function(cb) return cb == callback end, self.pre_load_callbacks)
+  if #filter_table == #self.pre_load_callbacks then
+    table.insert(self.pre_load_callbacks, callback)
+  end
 end
 
 ---@param callback fun(workspace: Workspace)
 function WorkspaceManager:register_post_load_callback(callback)
-  table.insert(self.post_load_callbacks, callback)
+  -- check if exists and ,if not insert, and check if loaded, if loaded, call the callback
+  if self.loaded then
+    callback(self.active_workspace)
+  end
+  local filter_table = vim.tbl_filter(function(cb) return cb == callback end, self.post_load_callbacks)
+  if not filter_table or #filter_table == 0 then
+    table.insert(self.post_load_callbacks, callback)
+  end
 end
 
 function WorkspaceManager:create_user_command()
