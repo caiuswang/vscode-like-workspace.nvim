@@ -75,7 +75,7 @@ M.default_config = {
     c = require('vscodews.lspwrapper.c').setup,
     -- python = require('vscodews.lspwrapper.python').setup,
     java = function (o)
-      -- require('vscodews.lspwrapper.jdtls').setup(o)
+      -- require('vscodews.lspwrapper.nvim-jdtls').setup(o)
       -- require("spring_boot_dash").setup(o)
     end,
     json = require('vscodews.lspwrapper.jsonls').setup,

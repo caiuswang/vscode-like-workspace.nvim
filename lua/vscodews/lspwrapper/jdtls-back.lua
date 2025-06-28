@@ -56,6 +56,7 @@ local import_orders = {
 }
 
 M.setup = function (opts)
+  util.download_jdtls_if_not_exist()
   local set_map = {
     ["java.completion.filteredTypes"] = table.concat(disable_completeTypes, ' '),
     ["java.completion.importOrder"] = table.concat(import_orders, ","),

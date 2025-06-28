@@ -75,10 +75,11 @@ M.setup = function (opts)
   local jdtls_data_path = get_jdtls_workspace_dir(opts.folders)
   vim.print(jdtls_data_path)
   local bundles =  {
-    util.process_path_with_env("$HOME/.vscode-insiders/extensions/vmware.vscode-spring-boot-1.61.1/jars/io.projectreactor.reactor-core.jar"),
-    util.process_path_with_env("$HOME/.vscode-insiders/extensions/vmware.vscode-spring-boot-1.61.1/jars/org.reactivestreams.reactive-streams.jar"),
-    util.process_path_with_env("$HOME/.vscode-insiders/extensions/vmware.vscode-spring-boot-1.61.1/jars/jdt-ls-commons.jar"),
-    util.process_path_with_env("$HOME/.vscode-insiders/extensions/vmware.vscode-spring-boot-1.61.1/jars/sts-gradle-tooling.jar"),
+    -- util.process_path_with_env("$HOME/.vscode-insiders/extensions/vmware.vscode-spring-boot-1.61.1/jars/io.projectreactor.reactor-core.jar"),
+    -- util.process_path_with_env("$HOME/.vscode-insiders/extensions/vmware.vscode-spring-boot-1.61.1/jars/org.reactivestreams.reactive-streams.jar"),
+    -- util.process_path_with_env("$HOME/.vscode-insiders/extensions/vmware.vscode-spring-boot-1.61.1/jars/jdt-ls-commons.jar"),
+    -- util.process_path_with_env("$HOME/.vscode-insiders/extensions/vmware.vscode-spring-boot-1.61.1/jars/sts-gradle-tooling.jar"),
+    util.process_path_with_env("$HOME/.vscode-insiders/extensions/vscjava.vscode-java-debug-0.58.2025042405/server/com.microsoft.java.debug.plugin-0.53.1.jar")
     -- util.process_path_with_env("$HOME/.vscode/extensions/vmware.vscode-spring-boot-1.61.1/jars/io.projectreactor.reactor-core.jar"),
     -- util.process_path_with_env("$HOME/.vscode/extensions/vmware.vscode-spring-boot-1.61.1/jars/org.reactivestreams.reactive-streams.jar"),
     -- util.process_path_with_env("$HOME/.vscode/extensions/vmware.vscode-spring-boot-1.61.1/jars/jdt-ls-commons.jar"),
@@ -119,6 +120,7 @@ M.setup = function (opts)
       if (opts.on_attach) then
         opts.on_attach(client, bufnr)
       end
+      require("jdtls").setup_dap()
     end,
     init_options = init_options,
     bundles = bundles,
