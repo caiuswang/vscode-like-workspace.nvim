@@ -55,6 +55,7 @@ local import_orders = {
 }
 
 M.setup = function (opts)
+  util.download_jdtls_if_not_exist()
   local set_map = {
     ["java.completion.filteredTypes"] = table.concat(disable_completeTypes, ' '),
     ["java.completion.importOrder"] = table.concat(import_orders, ","),
@@ -73,7 +74,6 @@ M.setup = function (opts)
     table.insert(workspace_folders, single_workspace_folder)
   end
   local jdtls_data_path = get_jdtls_workspace_dir(opts.folders)
-  vim.print(jdtls_data_path)
   local bundles =  {
     -- util.process_path_with_env("$HOME/.vscode-insiders/extensions/vmware.vscode-spring-boot-1.61.1/jars/io.projectreactor.reactor-core.jar"),
     -- util.process_path_with_env("$HOME/.vscode-insiders/extensions/vmware.vscode-spring-boot-1.61.1/jars/org.reactivestreams.reactive-streams.jar"),

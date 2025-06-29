@@ -59,7 +59,8 @@ M.default_config = {
     "python",
     "json",
     "java",
-    "javascript"
+    "javascript",
+    "yaml"
   },
   diable_type = {
     'tailwindcss',
@@ -79,14 +80,26 @@ M.default_config = {
       -- require("spring_boot_dash").setup(o)
     end,
     json = require('vscodews.lspwrapper.jsonls').setup,
-    javascript =  require('lspconfig').quick_lint_js.setup
+    javascript =  require('lspconfig').quick_lint_js.setup,
+    yaml = require("vscodews.lspwrapper.yaml").setup,
   },
 }
 ---@param c table
 M.setup = function(c)
   vim.lsp.set_log_level("info")
   local config = vim.tbl_extend("force", M.default_config, c)
-  -- config.capabilities = config.capabilities or vim.lsp.protocol.make_client_capabilities()
+  config.capabilities = config.capabilities or vim.lsp.protocol.make_client_capabilities()
+  config.capabilities = vim.tbl_deep_extend('force', config.capabilities, require('blink.cmp').get_lsp_capabilities({}, false))
+
+  config.capabilities = vim.tbl_deep_extend('force', config.capabilities, {
+    textDocument = {
+      foldingRange = {
+        dynamicRegistration = false,
+        lineFoldingOnly = true
+      }
+    }
+  })
+
   local enable_type = config.enable_type or M.default_config.enable_type
   local diable_type = config.diable_type or M.default_config.diable_type
   --local diable_func = config.diable_func or M.default_config.diable_func
