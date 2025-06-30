@@ -86,6 +86,24 @@ M.setup = function (opts)
     -- util.process_path_with_env("$HOME/.vscode/extensions/vmware.vscode-spring-boot-1.61.1/jars/sts-gradle-tooling.jar"),
     -- vim.fn.glob(util.process_path_with_env("$HOME/.vscode-insiders/extensions/vmware.vscode-spring-boot-1.61.1/jars/*.jar")),
   }
+ local capabilities = vim.tbl_deep_extend("force", vim.lsp.protocol.make_client_capabilities(), {
+    workspace = {
+      executeCommand = { value = true , dynamicRegistration = true },
+      dynamicRegistration = true,
+    },
+  })
+  capabilities.textDocument.implementation = {
+    linkSupport = true,
+    dynamicRegistration = true
+  }
+  capabilities.textDocument.typeDefinition = {
+    linkSupport = true,
+    dynamicRegistration = true
+  }
+  capabilities.textDocument.typeHierarchy = {
+    linkSupport = true,
+    dynamicRegistration = true
+  }
   local init_options = {
     -- workspace = jdtls_data_path,
     jvm_args = {"-Dlog.level=DEBUG"},
@@ -108,13 +126,14 @@ M.setup = function (opts)
     "-Xmx8G",
     util.process_path_with_env("--jvm-arg=-javaagent:$HOME/.m2/repository/org/projectlombok/lombok/1.18.26/lombok-1.18.26.jar"),
     "--jvm-arg=-Dlog.level=DEBUG",
-    -- "--jvm-arg=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5007",
+    -- "--jvm-arg=-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005",
     "-DwatchParentProcess=false",
     "-debug",
   }
   vim.print(table.concat(cmd, ' '))
   require('jdtls').start_or_attach({
     cmd = cmd,
+    capabilities = capabilities,
     on_attach =
     function(client, bufnr)
       if (opts.on_attach) then
