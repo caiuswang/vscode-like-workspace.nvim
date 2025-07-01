@@ -1,19 +1,23 @@
 
 local M = {}
+M.gloabl_workspace_libraray = {
+  vim.fn.expand('$VIMRUNTIME/lua'),
+  vim.fn.expand('$VIMRUNTIME/lua/vim/lsp'),
+}
+
 M.setup = function (opts)
   local runtime_path = vim.split(package.path, ';')
   vim.lsp.enable('lua_ls')
+  local workspace_library = {}
+  for _, path in ipairs(M.gloabl_workspace_libraray) do
+    table.insert(workspace_library, path)
+  end
+  for _, folder in ipairs(opts.folders) do
+   table.insert(workspace_library, folder.path)
+  end
   vim.lsp.config('lua_ls', {
     cmd = { 'lua-language-server' },
     filetypes = { 'lua' },
-    on_init = function(client)
-      if client.workspace_folders then
-        local path = client.workspace_folders[1].name
-        if vim.loop.fs_stat(path..'/.luarc.json') or vim.loop.fs_stat(path..'/.luarc.jsonc') then
-          return
-        end
-      end
-    end,
     on_attach = opts.on_attach,
     capabilities = opts.capabilities,
     settings = {
@@ -53,16 +57,7 @@ M.setup = function (opts)
           pathStrict = false,
         },
         workspace = {
-          library = {
-            vim.fn.expand('$VIMRUNTIME/lua'),
-            vim.fn.expand('$VIMRUNTIME/lua/vim/lsp'),
-            vim.fn.expand('$HOME/.config/nvim/lua'),
-            vim.fn.expand('$HOME/.config/nvim/lua/plugins'),
-            vim.fn.expand('/usr/local/share/lua/5.1'),
-            -- vim.fn.expand('$HOME/.local/share/nvim/site'),
-            -- vim.fn.expand('$HOME/.local/share/nvim/lazy'),
-            vim.fn.expand('$HOME/.local/share/nvim/lazy/nvim-lspconfig'),
-          },
+          library = workspace_library,
           checkThirdParty = false,
           maxPreload = 100000,
           preloadFileSize = 10000,
