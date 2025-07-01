@@ -7,6 +7,7 @@ local actions = require "telescope.actions"
 local Path = require("plenary.path")
 local fd = builtin.find_files
 local recent_file = builtin.oldfiles
+local util = require("vscodews.util")
 package.path = package.path .. ';' .. "?/.lua" .. ';' .. "?/init.lua"
 package.cpath = package.cpath .. ';' .. os.getenv("HOME") .. "/.luarocks/lib/lua/5.1/?.so"
 
@@ -98,7 +99,8 @@ function M.find_recent_files()
     layout_config={width=0.9, height=0.9},
     preview_cutoff=60,
     path_display = M.custom_path_display,
-    search_path = M.get_search_folder(),
+    -- TODO: it's not support by current telescope version, i change it locally to support this option
+    search_dirs = M.get_search_folder(),
     prompt_title = 'Recent Files in workspace'
   }
   M.current_file_type = vim.fn.expand('%:e')
@@ -312,21 +314,8 @@ function M.init_config(file_path)
     M.type_assoc_pro_map = cfg.type_assoc_pro_map or M.type_assoc_pro_map
     M.type_asso_definition_map = cfg.type_asso_definition_map or M.type_asso_definition_map
     M.workspace_folders = cfg.folders or M.workspace_folders
-    M.workspace_folders = M.process_workspace_folders(M.workspace_folders)
   end
 end
-
-function M.process_workspace_folders(folders)
-  local final_workspace_folders = {}
-  for _,folder_config in pairs(folders) do
-    local path = Path:new(folder_config.path)
-    local folder_path = path:absolute()
-    print("folders path is " .. folder_path)
-    table.insert(final_workspace_folders, folder_path)
-  end
-  return final_workspace_folders
-end
-
 
 function M.register_autocmd()
   -- vim.cmd('augroup file')

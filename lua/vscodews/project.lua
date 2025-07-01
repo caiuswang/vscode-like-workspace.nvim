@@ -2,7 +2,7 @@ local f = require("vscodews.file")
 require("vscodews.types")
 
 --- @class Project
---- @field workspace_fodlers WorkspaceFolder[]
+--- @field workspace_folders WorkspaceFolder[]
 local M = {}
 
 
@@ -34,13 +34,13 @@ end
 
 function M.get_common_workspace_relative_path(file_path)
   -- sort with the longest path first
-  for _, folder in pairs(M.workspace_fodlers) do
+  for _, folder in pairs(M.workspace_folders) do
     -- join the folder path with the file path
     local relative_path = get_relative_path(file_path, folder.path)
     if relative_path ~= file_path then
       local show_path = relative_path
-      if folder.base_modules ~= nil then
-        for _, module_dir in pairs(folder.base_modules) do
+      if folder.modules ~= nil then
+        for _, module_dir in pairs(folder.modules) do
           vim.notify("module_dir: " .. module_dir)
           if startsWith(relative_path, module_dir) then
             show_path = relative_path:sub(#module_dir + 1)
@@ -72,7 +72,7 @@ local java_custom_path_func = function(path)
   local tail = require("telescope.utils").path_tail(path)
   local show_path = path
   local lotto_project = ""
-  local workspace_folders = M.workspace_fodlers
+  local workspace_folders = M.workspace_folders
   -- check if file is a java file
   for _, folder in pairs(workspace_folders) do
     if string.match(path, '^'..folder.path) then
@@ -157,7 +157,7 @@ function M.setup(opts)
   table.sort(sorted_workspace_folders, function(a, b)
     return string.len(a.path) > string.len(b.path)
   end)
-  M.workspace_fodlers = sorted_workspace_folders
+  M.workspace_folders = sorted_workspace_folders
 
 
   -- f.register_file_type_path_display("java", java_custom_path_func)

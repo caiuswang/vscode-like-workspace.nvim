@@ -1,7 +1,85 @@
+local Path = require('plenary.path')
 local M = {}
+
+vim.env.VIM_DATA_PATH = vim.fn.stdpath("data")
+vim.env.VIM_CONFIG_PATH = vim.fn.stdpath("config")
+
+local predfiend_env = {
+  VIM_DATA_PATH = vim.env.VIM_DATA_PATH,
+  VIM_CONFIG_PATH = vim.env.VIM_CONFIG_PATH,
+}
+
+---@param folders WorkspaceFolder[]
+---@return table
+function M.process_workspace_folders(folders)
+  local final_workspace_folders = {}
+  for _,folder_config in pairs(folders) do
+    local p = M.process_path_with_env(folder_config.path)
+    local path = Path:new(p)
+    local folder_path = path:absolute()
+    if not path:exists() then
+      vim.notify("Workspace folder " .. folder_config.name .. " does not exist: " .. folder_path, vim.log.levels.WARN, {
+        title = "vscodews"
+      })
+      goto continue
+    end
+    if folder_config.modules ~= nil then
+      for _, module in pairs(folder_config.modules) do
+        local module_path = Path:new(folder_path, module)
+        if not module_path:exists() then
+          vim.notify("Module " .. module .. " in workspace folder " .. folder_config.name .. " does not exist.", vim.log.levels.WARN, {
+            title = "vscodews"
+          })
+        else
+            local parent_folder_name = folder_config.name or path:make_relative()
+            local current_module_name = parent_folder_name .. "-> " .. module
+            local workspace_folder = {
+              name = current_module_name,
+              path = module_path:absolute(),
+              enabled = folder_config.enabled
+            }
+            M.append_if_not_exist(final_workspace_folders, workspace_folder)
+        end
+      end
+    else
+      local workspace_folder = {
+        name = folder_config.name or path:make_relative(),
+        path = folder_path
+      }
+      M.append_if_not_exist(final_workspace_folders, workspace_folder)
+    end
+    ::continue::
+  end
+  return final_workspace_folders
+end
+
+
+function M.append_if_not_exist(final_workspace_folders, workspace_folder)
+  if M.check_if_table_exists_path(final_workspace_folders, workspace_folder.path) then
+    vim.notify("Workspace folder " .. workspace_folder.name .. "'s path already exists, skipping.", vim.log.levels.WARN, {
+      title = "vscodews"
+    })
+  else
+    table.insert(final_workspace_folders, workspace_folder)
+  end
+  return final_workspace_folders
+end
+
+
+function M.check_if_table_exists_path(t, path)
+  for _, v in pairs(t) do
+    if v.path == path then
+      return true
+    end
+  end
+  return false
+end
 
 function M.process_path_with_env(path)
   local env = vim.fn.environ()
+  for k, v in pairs(predfiend_env) do
+    path = string.gsub(path, '$' .. k, v)
+  end
   for k, v in pairs(env) do
     path = string.gsub(path, '$' .. k, v)
   end
@@ -48,7 +126,7 @@ function M.get_jdtls_executable()
 end
 
 function M.download_jdtls_if_not_exist()
-  -- let user choose if they want to download the latest version of jdtlsj
+  -- let user choose if they want to download the latest version of jdtls
   if vim.fn.filereadable(M.get_jdtls_executable()) == 1 then
     return
   end

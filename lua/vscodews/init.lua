@@ -1,6 +1,7 @@
 local WorkspaceManager = require('vscodews.workspace-manager')
 local log = require('vscodews.log')
 local project = require('vscodews.project')
+local util = require("vscodews.util")
 
 local M = {}
 
@@ -15,7 +16,8 @@ end)
 WorkspaceManager:register_post_load_callback(function(workspace)
   -- Custom actions to perform after the workspace has loaded
   local opts = {}
-  opts.folders = workspace:get_enabled_folders()
+  local folders = workspace:get_enabled_folders()
+  opts.folders = util.process_workspace_folders(folders)
   opts.config_root = workspace.config_root
   local lsp = require('vscodews.lsp')
   lsp.setup(opts)

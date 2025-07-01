@@ -2,18 +2,18 @@
     "folders": [
         {
             "name": "lazy",
-            "path": "$HOME/.local/share/nvim/lazy/",
+            "path": "$VIM_DATA_PATH/lazy",
             "modules": [
                 "nvim-lspconfig"
             ]
         },
         {
             "name": "local-config",
-            "path": "$HOME/taowang/.config/nvim/"
+            "path": "$VIM_CONFIG_PATH"
         },
         {
             "name": "vscodews",
-            "path": "$HOME/.local/share/nvim/lazy/vscodews.nvim/"
+            "path": "$VIM_DATA_PATH/lazy/vscode-like-workspace.nvim"
         }
     ],
     "settings": {

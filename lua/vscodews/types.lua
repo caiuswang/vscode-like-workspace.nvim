@@ -1,7 +1,7 @@
 --- @class WorkspaceFolder
 --- @field path string
 --- @field name string
---- @field base_modules string[]
+--- @field modules string[]
 --- @field enabled boolean
 local WorkspaceFolder = {}
 
