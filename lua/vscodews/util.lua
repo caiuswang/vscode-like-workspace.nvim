@@ -85,7 +85,7 @@ function M.process_path_with_env(path)
   end
   -- if still exists $ then return to nil
   if string.find(path, '%$') then
-    vim.notify("Path contains undefined environment variables: " .. path, vim.log.levels.ERROR, {
+    vim.notify("Path contains undefined environment variables: " .. path, vim.log.levels.DEBUG, {
       title = "vscodews"
     })
     return nil
@@ -137,7 +137,8 @@ end
 
 function M.download_jdtls_if_not_exist()
   -- let user choose if they want to download the latest version of jdtls
-  if vim.fn.filereadable(M.get_jdtls_executable()) == 1 then
+  local jdtls_executable = M.get_jdtls_executable()
+  if jdtls_executable ~= nil and vim.fn.filereadable(jdtls_executable) == 1 then
     return
   end
   local choice = vim.fn.input("Do you want to download the latest version of jdtls? (y/n): ")
