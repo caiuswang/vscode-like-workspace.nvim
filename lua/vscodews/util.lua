@@ -83,6 +83,13 @@ function M.process_path_with_env(path)
   for k, v in pairs(env) do
     path = string.gsub(path, '$' .. k, v)
   end
+  -- if still exists $ then return to nil
+  if string.find(path, '%$') then
+    vim.notify("Path contains undefined environment variables: " .. path, vim.log.levels.ERROR, {
+      title = "vscodews"
+    })
+    return nil
+  end
   return path
 end
 
@@ -96,10 +103,7 @@ function M.get_java_version()
 end
 
 function M.get_java_home()
-  -- return M.process_path_with_env("$HOME/Library/Java/JavaVirtualMachines/temurin-21.0.3/Contents/Home")
-    -- return M.process_path_with_env("$HOME//Library/Java/JavaVirtualMachines/corretto-19.0.2/Contents/Home")
-    -- return M.process_path_with_env("/opt/homebrew/Cellar/openjdk/23.0.2")
-    return M.process_path_with_env("$LSP_JAVA_HOME")
+    return M.process_path_with_env("$LSP_JAVA_HOME") or M.process_path_with_env("$JAVA_HOME")
 end
 
 function M.get_jdt_server_version()
@@ -118,6 +122,12 @@ function M.get_jtd_server_major_version()
 end
 
 function M.get_java_executable()
+  if M.get_java_home() == nil then
+    vim.notify("LSP_JAVA_HOME or JAVA_HOME is not set, please set one of it .", vim.log.levels.ERROR, {
+      title = "vscodews"
+    })
+    return "java"
+  end
   return M.path_join(M.get_java_home(), "bin", "java")
 end
 
